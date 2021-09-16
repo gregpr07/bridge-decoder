@@ -14,7 +14,7 @@ func recursivelyCheckTrace (txTrace TxTrace, checkFunc func(TxTrace,*TxTrace) bo
 	return false
 }
 
-var ERC20PredicateProxy = strings.ToLower("0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf")
+// var ERC20PredicateProxy = strings.ToLower("0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf")
 var RootChainManagerProxy = strings.ToLower("0xA0c68C638235ee32657e8f720a23ceC1bFc77C77")
 var DepositForMethodId = strings.ToLower("0xe3dec8fb")
 var ExitMethodId = strings.ToLower("0x3805550f")
@@ -27,6 +27,15 @@ func checkPOSTrace (trace TxTrace,resultTrace *TxTrace) bool {
 	return false
 }
 
+type decodedTransfer struct {
+	method string;
+	to string
+	amount string
+}
+func decodeTransferInput(inpt string) decodedTransfer {
+	return decodedTransfer{"0x"+inpt[0:10],"0x"+inpt[10:74],"0x"+inpt[74:138]}
+}
+
 func checkPolygonPOSDeposit (txHash string,txData TxData,txTrace TxTrace) error {
 	var trace TxTrace;
 	if (recursivelyCheckTrace(txTrace,checkPOSTrace,&trace)) {
@@ -34,11 +43,36 @@ func checkPolygonPOSDeposit (txHash string,txData TxData,txTrace TxTrace) error 
 			// fmt.Println("Deposit",trace.TransactionHash)
 		} else if strings.HasPrefix(trace.Input,ExitMethodId) {
 			// fmt.Println("Exit",trace.TransactionHash,trace.Calls)
-			fmt.Println(trace.TransactionHash)
-			fmt.Println(trace.Calls[0].Calls[1].Calls[0].Calls[0])
-		}
+			// fmt.Println(trace.TransactionHash)
 
-		// fmt.Println(trace.TransactionHash)
+			// example of exit is https://etherscan.io/tx/0x2e86f1b55a8f750fc15d4fd58622337530fecbd70265902a7afc3a3134b92a63#internal
+			// this is the trace that gets the amount deposited
+
+			valid := false
+			if len(trace.Calls) > 0 {
+				if len(trace.Calls[0].Calls) > 0 {
+					if len(trace.Calls[0].Calls[1].Calls) > 0 {
+						if len(trace.Calls[0].Calls[1].Calls[0].Calls) > 0 {
+							
+							valid = true
+						}
+					}
+				}
+			}
+			if !valid {
+				fmt.Println("Transaction failed (probably).")
+				return nil
+			}
+			
+			swapTrace := trace.Calls[0].Calls[1].Calls[0].Calls[0]
+			
+			if (swapTrace.Input == "0x") {
+				fmt.Println("Ether exit",swapTrace.Value,"ETH", swapTrace.TransactionHash)
+			} else {
+				decoded := decodeTransferInput(swapTrace.Input)
+				fmt.Println("ERC20 exit", decoded.amount, swapTrace.To, swapTrace.TransactionHash)
+			}
+		}
 	}
 	return nil
 }
