@@ -1,4 +1,4 @@
-package main
+package utils
 
 type TxData struct {
 	BlockNumber string `json:"blockNumber"`
@@ -25,3 +25,6 @@ type TxTrace struct {
 	TransactionHash string `json:"transactionHash"`
 	Calls         	[]TxTrace
 }
+
+const SCHEMA = "bridges"
+const ZERO_ADDRESS = "0x"
