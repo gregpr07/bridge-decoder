@@ -7,7 +7,8 @@ import (
 
 type PolygonPOSBridgeTx struct {
 	gorm.Model
-	Successful			bool
+	Chain			int
+	Successful		bool
 	Type			string
 	Method			string
 	OriginFrom		string
@@ -24,5 +25,5 @@ type PolygonPOSBridgeTx struct {
 }
 
 func (PolygonPOSBridgeTx) TableName() string {
-	return utils.SCHEMA + ".PolygonPOSBridgeDepositTx"
+	return utils.SCHEMA + ".PolygonPOSBridgeTx"
 }
