@@ -12,18 +12,18 @@ import (
 var WithdrawMethodId = strings.ToLower("0x2e1a7d4d")
 var chain = 137
 
-func checkTrace (trace utils.TxTrace,resultTrace *utils.TxTrace) bool {
-	if (strings.HasPrefix(trace.Input,WithdrawMethodId)) {
+func checkTrace(trace utils.TxTrace, resultTrace *utils.TxTrace) bool {
+	if strings.HasPrefix(trace.Input, WithdrawMethodId) {
 		*resultTrace = trace
 		return true
 	}
 	return false
 }
 
-func CheckPolygonPOS_Polygon (db *gorm.DB, txHash string,txTrace utils.TxTrace) error {
-	var trace utils.TxTrace;
-	if (utils.RecursivelyCheckTrace(txTrace,checkTrace,&trace)) {
-		if strings.HasPrefix(trace.Input,DepositEtherForMethodId) {
+func CheckPolygonPOS_Polygon(db *gorm.DB, txHash string, txTrace utils.TxTrace) error {
+	var trace utils.TxTrace
+	if utils.RecursivelyCheckTrace(txTrace, checkTrace, &trace) {
+		if strings.HasPrefix(trace.Input, DepositEtherForMethodId) {
 			//? this is deposit of ether
 
 			// To test if I can get internal calls as well
@@ -40,39 +40,39 @@ func CheckPolygonPOS_Polygon (db *gorm.DB, txHash string,txTrace utils.TxTrace) 
 
 			decoded, _ := DecodeDepositEtherFor(trace.Input)
 
-			var amount string;
+			var amount string
 			if valid {
 				transferTrace := trace.Calls[0].Calls[2]
 				amount = transferTrace.Value
 			} else {
 				amount = "0x"
 			}
-			
+
 			// fmt.Println("Deposit ether", transferTrace.Value, "eth", "TO", decoded.to, utils.MakeEtherscanLink(trace.TransactionHash))
 			fmt.Println("Deposit ether")
 			depositedEther := PolygonPOSBridgeTx{
-								Chain: chain,
-								Successful: valid,
-								Type: "Deposit",
-								Method: "DepositEtherFor",
-								OriginFrom: trace.From,
-								OriginTo: trace.To,
-								Bridge: trace.To,
-								From: trace.From,
-								To: decoded.to,
-								Amount: amount,
-								BaseToken: utils.ZERO_ADDRESS,
-								Input: trace.Input,			
-								GasUsed: trace.GasUsed,
-								BlockNumber: trace.BlockNumber,
-								TransactionHash: trace.TransactionHash,
-							}
+				Chain:           chain,
+				Successful:      valid,
+				Type:            "Deposit",
+				Method:          "DepositEtherFor",
+				OriginFrom:      trace.From,
+				OriginTo:        trace.To,
+				Bridge:          trace.To,
+				From:            trace.From,
+				To:              decoded.to,
+				Amount:          amount,
+				BaseToken:       utils.ZERO_ADDRESS,
+				Input:           trace.Input,
+				GasUsed:         trace.GasUsed,
+				BlockNumber:     trace.BlockNumber,
+				TransactionHash: trace.TransactionHash,
+			}
 			dbResult := db.Create(&depositedEther)
 			if dbResult.Error != nil {
 				fmt.Println("Error creating deposit ether")
 			}
 
-		} else if strings.HasPrefix(trace.Input,DepositForMethodId) {
+		} else if strings.HasPrefix(trace.Input, DepositForMethodId) {
 			//? this is deposit of erc20
 
 			valid := false
@@ -86,40 +86,39 @@ func CheckPolygonPOS_Polygon (db *gorm.DB, txHash string,txTrace utils.TxTrace) 
 				}
 			}
 
-
 			// if !valid {
 			// 	transferTrace := trace.Calls[0].Calls[0].Calls[0].Calls[0]
 
 			// } else {
 			// 	//fmt.Println("DepositFor failed (probably).", utils.MakeEtherscanLink(trace.TransactionHash))
 			// }
-			
+
 			decoded, _ := DecodeDepositFor(trace.Input)
-			
+
 			// fmt.Println("Deposit erc20", decoded.amount, decoded.rootToken, utils.MakeEtherscanLink(trace.TransactionHash))
 			fmt.Println("Deposit ERC20")
 			depositedEther := PolygonPOSBridgeTx{
-					Chain: chain,
-					Successful: valid,
-					Type: "Deposit",
-					Method: "DepositFor",
-					OriginFrom: trace.From,
-					OriginTo: trace.To,
-					Bridge: trace.To,
-					To: decoded.user,
-					Amount: decoded.amount,
-					BaseToken: decoded.rootToken,
-					Input: trace.Input,			
-					GasUsed: trace.GasUsed,
-					BlockNumber: trace.BlockNumber,
-					TransactionHash: trace.TransactionHash,
-				}
+				Chain:           chain,
+				Successful:      valid,
+				Type:            "Deposit",
+				Method:          "DepositFor",
+				OriginFrom:      trace.From,
+				OriginTo:        trace.To,
+				Bridge:          trace.To,
+				To:              decoded.user,
+				Amount:          decoded.amount,
+				BaseToken:       decoded.rootToken,
+				Input:           trace.Input,
+				GasUsed:         trace.GasUsed,
+				BlockNumber:     trace.BlockNumber,
+				TransactionHash: trace.TransactionHash,
+			}
 			dbResult := db.Create(&depositedEther)
 			if dbResult.Error != nil {
 				fmt.Println("Error creating deposit ether")
 			}
 
-		} else if strings.HasPrefix(trace.Input,WithdrawMethodId) {
+		} else if strings.HasPrefix(trace.Input, WithdrawMethodId) {
 			//? withdraw, burn of erc20 or ether
 			// fmt.Println("Exit",trace.TransactionHash,trace.Calls)
 			// fmt.Println(trace.TransactionHash)
@@ -141,31 +140,31 @@ func CheckPolygonPOS_Polygon (db *gorm.DB, txHash string,txTrace utils.TxTrace) 
 				}
 			}
 			if !valid {
-				fmt.Println("Exit failed (probably).",utils.MakeEtherscanLink(trace.TransactionHash))
+				fmt.Println("Exit failed (probably).", utils.MakeEtherscanLink(trace.TransactionHash))
 				return nil
 			}
-			
+
 			transferTrace := trace.Calls[0].Calls[1].Calls[0].Calls[0]
-			
+
 			depositedEther := PolygonPOSBridgeTx{
-				Chain: chain,
+				Chain:      chain,
 				Successful: valid,
-				Type: "Exit",
-				Method: "",
+				Type:       "Exit",
+				Method:     "",
 				OriginFrom: trace.From,
-				OriginTo: trace.To,
-				Bridge: trace.To,
+				OriginTo:   trace.To,
+				Bridge:     trace.To,
 				//? probably redundant but still
-				From: transferTrace.To,
-				To: "",
-				Amount: "",
-				BaseToken: "",
-				Input: trace.Input,			
-				GasUsed: trace.GasUsed,
-				BlockNumber: trace.BlockNumber,
+				From:            transferTrace.To,
+				To:              "",
+				Amount:          "",
+				BaseToken:       "",
+				Input:           trace.Input,
+				GasUsed:         trace.GasUsed,
+				BlockNumber:     trace.BlockNumber,
 				TransactionHash: trace.TransactionHash,
 			}
-			if (transferTrace.Input == "0x") {
+			if transferTrace.Input == "0x" {
 				// fmt.Println("Ether exit",transferTrace.Value,"ETH", utils.MakeEtherscanLink(transferTrace.TransactionHash))
 				fmt.Println("Ether Exit")
 				depositedEther.Method = "ExitEther"
