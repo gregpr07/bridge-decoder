@@ -1,7 +1,9 @@
 package bridges
 
 import (
+	"encoding/hex"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gregpr07/bridge-decoder/utils"
@@ -26,11 +28,43 @@ func checkPOSTrace(trace utils.TxTrace, resultTrace *utils.TxTrace) bool {
 	return false
 }
 
+func GetProofOfBurnTX(txInput string) {
+	// decode txInput method signature
+	decodedSig, err := hex.DecodeString(txInput[2:10])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// recover Method from signature and ABI
+	method, err := utils.RootChainManager.MethodById(decodedSig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// decode txInput Payload
+	decodedData, err := hex.DecodeString(txInput[10:])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
+	// unpack method inputs
+	data, err := method.Inputs.UnpackValues(decodedData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(data)
+
+}
+
 func CheckPolygonPOS_ETH(db *gorm.DB, txHash string, txData utils.TxData, txTrace utils.TxTrace) error {
 	var trace utils.TxTrace
 	if utils.RecursivelyCheckTrace(txTrace, checkPOSTrace, &trace) {
 		if strings.HasPrefix(trace.Input, DepositEtherForMethodId) {
 			//? this is deposit of ether
+
+			// return nil
 
 			// To test if I can get internal calls as well
 			// if txData.To != RootChainManagerProxy {
@@ -81,6 +115,8 @@ func CheckPolygonPOS_ETH(db *gorm.DB, txHash string, txData utils.TxData, txTrac
 		} else if strings.HasPrefix(trace.Input, DepositForMethodId) {
 			//? this is deposit of erc20
 
+			// return nil
+
 			valid := false
 			if len(trace.Calls) > 0 {
 				if len(trace.Calls[0].Calls) > 0 {
@@ -111,6 +147,7 @@ func CheckPolygonPOS_ETH(db *gorm.DB, txHash string, txData utils.TxData, txTrac
 				OriginFrom:      txData.From,
 				OriginTo:        txData.To,
 				Bridge:          trace.To,
+				From:			 trace.From,
 				To:              decoded.user,
 				Amount:          decoded.amount,
 				BaseToken:       decoded.rootToken,
@@ -131,6 +168,10 @@ func CheckPolygonPOS_ETH(db *gorm.DB, txHash string, txData utils.TxData, txTrac
 
 			// example of exit is https://etherscan.io/tx/0x2e86f1b55a8f750fc15d4fd58622337530fecbd70265902a7afc3a3134b92a63#internal
 			// this is the trace that gets the amount deposited
+
+			// GetProofOfBurnTX(trace.Input)
+
+			// return nil
 
 			valid := false
 			if len(trace.Calls) > 0 {

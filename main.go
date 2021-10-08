@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -12,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/gregpr07/bridge-decoder/bridges"
-	"github.com/gregpr07/bridge-decoder/tracer"
 	"github.com/gregpr07/bridge-decoder/utils"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -132,24 +131,26 @@ func checkPolygon(db *gorm.DB) {
 // https://gosamples.dev/read-csv/
 func main() {
 	// open database
-	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// db.AutoMigrate(&bridges.PolygonPOSBridgeTx{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.AutoMigrate(&bridges.PolygonPOSBridgeTx{})
 
-	// checkEthereum(db)
+	checkEthereum(db)
 	// checkPolygon(db)
 
-	ctx := context.Background()
-	cfg := tracer.JSTracerConfig()
-	t, err := tracer.New(ctx, "http://localhost:18545", cfg)
-	if err != nil {
-		log.Fatalf("Can not build tracer ", err)
-	}
-	traces, err := t.TraceLatest(ctx)
-	if err != nil {
-		log.Fatal("Can not trace ", err)
-	}
-	log.Printf("Tracing result: ", traces)
+	
+
+	// ctx := context.Background()
+	// cfg := tracer.JSTracerConfig()
+	// t, err := tracer.New(ctx, "http://localhost:18545", cfg)
+	// if err != nil {
+	// 	log.Fatalf("Can not build tracer ", err)
+	// }
+	// traces, err := t.TraceLatest(ctx)
+	// if err != nil {
+	// 	log.Fatal("Can not trace ", err)
+	// }
+	// log.Printf("Tracing result: ", traces)
 }

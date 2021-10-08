@@ -28,3 +28,4 @@ type TxTrace struct {
 
 const SCHEMA = "bridges"
 const ZERO_ADDRESS = "0x"
+

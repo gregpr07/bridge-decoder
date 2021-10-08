@@ -10,8 +10,8 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
-	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
