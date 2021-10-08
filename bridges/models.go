@@ -7,17 +7,17 @@ import (
 
 type PolygonPOSBridgeTx struct {
 	gorm.Model
-	Chain			int
-	Successful		bool
-	Type			string
-	Method			string
-	OriginFrom		string
-	OriginTo		string
+	Chain           int
+	Successful      bool
+	Type            string
+	Method          string
+	OriginFrom      string
+	OriginTo        string
 	Bridge          string
-	From			string
+	From            string
 	To              string
-	Amount			string
-	BaseToken		string
+	Amount          string
+	BaseToken       string
 	Input           string
 	GasUsed         string
 	BlockNumber     int

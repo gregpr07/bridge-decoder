@@ -23,7 +23,7 @@ type TxTrace struct {
 	GasUsed         string `json:"gasUsed"`
 	BlockNumber     int    `json:"blockNumber"`
 	TransactionHash string `json:"transactionHash"`
-	Calls         	[]TxTrace
+	Calls           []TxTrace
 }
 
 const SCHEMA = "bridges"
